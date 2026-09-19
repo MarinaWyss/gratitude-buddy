@@ -1,0 +1,57 @@
+# Gratitude Buddy
+
+A small macOS menu-bar companion. Roughly once an hour one of three buddies (a fluffy black cat,
+a sleek black cat, or a cream golden retriever, taking turns) slides up in the bottom-right corner, floating above whatever you're working on, and asks two things:
+
+1. **What's here right now?** Tap a few feeling words, or type your own.
+2. **Anything to be grateful for, right now?** Something small is enough. "Nothing today" is a fine answer.
+
+Then it says thanks and slides away.
+
+<p align="center"><img src="docs/buddies.png" width="360" alt="The three buddies"> <img src="docs/card.png" width="376" alt="The check-in card"></p>
+
+## Privacy
+
+Everything stays on your Mac. Each completed check-in is appended to a plain Markdown file at
+`~/Library/Application Support/Gratitude Buddy/journal.md`, which you own and can edit or delete.
+Nothing is sent anywhere, and dismissing a check-in stores nothing.
+
+## Build and run
+
+Needs the Xcode command-line tools (Swift 5.9+, macOS 14+). No Xcode project required.
+
+```bash
+./build.sh
+open "build/Gratitude Buddy.app"
+```
+
+To keep it around, drag `build/Gratitude Buddy.app` into `/Applications` and turn on **Open at login**
+from the menu.
+
+## The menu (the leaf in your menu bar)
+
+- **Next check-in around …** shows when it will appear next.
+- **Check in now** brings the buddy up immediately.
+- **Snooze 15 minutes** and **Pause until tomorrow** (resumes at 9 am).
+- **Open journal** opens the Markdown file.
+- **Soft sound** toggles the quiet pop on arrival.
+- **Open at login** registers it as a login item.
+
+## Behaviour details
+
+- Interval is random between 50 and 70 minutes, so it never feels like a metronome.
+- "Not now" brings it back in 30 minutes instead of a full hour.
+- Esc dismisses. The panel never steals focus from the app you're in, but you can type into it.
+- If the Mac was asleep past the scheduled time, it waits five minutes after wake.
+- If you've been away from the keyboard for more than five minutes, it waits until you're back.
+- If it sits ignored for 15 minutes it slides away on its own.
+- Drag the card anywhere by its background.
+
+## Tweaking
+
+- Feeling words, greetings, and copy live in `Sources/CheckInModel.swift` and `Sources/BuddyView.swift`.
+- The three buddies are drawn in `Sources/BuddyFace.swift`. `BuddyKind.next()` decides whose turn it is.
+- Timing lives in `Sources/Scheduler.swift`.
+- `./preview.sh` renders all three buddies in every mood, plus each step of the card, to `build/preview/` so you can check the design without
+  waiting for a pop-up.
+- For a quick test of the real thing: `BUDDY_INTERVAL_SECONDS=15 "build/Gratitude Buddy.app/Contents/MacOS/Gratitude Buddy"`.
