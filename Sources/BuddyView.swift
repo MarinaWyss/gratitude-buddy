@@ -9,8 +9,10 @@ struct BuddyView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            card.padding(.top, 62)
-            BuddyFace(kind: model.kind, mood: model.mood).padding(.leading, 18)
+            card.padding(.top, model.step == .meet ? 0 : 62)
+            if model.step != .meet {
+                BuddyFace(kind: model.kind, mood: model.mood).padding(.leading, 18)
+            }
         }
         .padding(18)
         .fixedSize()
@@ -27,7 +29,7 @@ struct BuddyView: View {
             content
         }
         .padding(.horizontal, 20)
-        .padding(.top, 46)
+        .padding(.top, model.step == .meet ? 20 : 46)
         .padding(.bottom, 18)
         .frame(width: 340, alignment: .leading)
         .background(
@@ -47,6 +49,7 @@ struct BuddyView: View {
         case .feelings: feelings
         case .gratitude: gratitude
         case .done: done
+        case .meet: MeetView(onClose: { model.dismiss() })
         }
     }
 
@@ -55,8 +58,8 @@ struct BuddyView: View {
     private var greeting: some View {
         Group {
             if model.isIntro {
-                TitleText("Hi. I'm your check-in buddy.")
-                BodyText("About once an hour I'll pop up and ask two quick things: how you're feeling, and whether there's anything to be grateful for.\n\nYou can snooze or pause me from the leaf in your menu bar.\n\nThere are three of us and we take turns. Want to try one now?")
+                TitleText("Hi. I'm \(model.kind.name).")
+                BodyText("About once an hour I'll pop up and ask two quick things: how you're feeling, and whether there's anything to be grateful for.\n\nYou can snooze or pause me from the leaf in your menu bar.\n\nThere are three of us, Toki, Skwisgaar and Appa, and we take turns. Want to try one now?")
             } else {
                 TitleText(model.greeting)
                 BodyText("Take one slow breath first.")
@@ -231,6 +234,46 @@ struct FlowLayout: Layout {
                     proposal: ProposedViewSize(size))
             x += size.width + spacing
             rowHeight = max(rowHeight, size.height)
+        }
+    }
+}
+
+// MARK: - Meet the buddies
+
+/// All three side by side, each cycling through its expressions.
+private struct MeetView: View {
+    let onClose: () -> Void
+    @State private var tick = 0
+    private let moods: [Mood] = [.neutral, .attentive, .happy]
+    private let timer = Timer.publish(every: 1.8, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        Group {
+            TitleText("Toki, Skwisgaar and Appa.")
+            BodyText("They take turns, one per check-in.")
+            HStack(spacing: 0) {
+                ForEach(Array(BuddyKind.allCases.enumerated()), id: \.element.rawValue) { i, kind in
+                    VStack(spacing: 2) {
+                        BuddyFace(kind: kind, mood: moods[(tick + i) % moods.count])
+                        Text(kind.name)
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                        Text(kind.species)
+                            .font(.system(size: 10.5, design: .rounded))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .frame(width: 100)
+                    }
+                }
+            }
+            .padding(.top, 6)
+            .onReceive(timer) { _ in tick += 1 }
+            HStack {
+                Spacer()
+                Button("Nice") { onClose() }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
+            }
+            .padding(.top, 4)
         }
     }
 }

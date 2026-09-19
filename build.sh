@@ -20,8 +20,9 @@ swiftc -O -swift-version 5 \
 cp Info.plist "$APP/Contents/Info.plist"
 
 echo "▸ icon"
-if swiftc -O -swift-version 5 -target "$ARCH-apple-macosx14.0" -framework AppKit \
-     Tools/MakeIcon.swift -o build/tmp/MakeIcon 2>/dev/null \
+if swiftc -O -swift-version 5 -target "$ARCH-apple-macosx14.0" \
+     -framework AppKit -framework SwiftUI -framework ServiceManagement \
+     $(ls Sources/*.swift | grep -v "/main.swift") Tools/MakeIcon/main.swift -o build/tmp/MakeIcon 2>/dev/null \
    && build/tmp/MakeIcon build/tmp/AppIcon.iconset >/dev/null \
    && iconutil -c icns build/tmp/AppIcon.iconset -o "$APP/Contents/Resources/AppIcon.icns"; then
   :

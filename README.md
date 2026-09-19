@@ -1,7 +1,7 @@
 # Gratitude Buddy
 
-A small macOS menu-bar companion. Roughly once an hour one of three buddies (a fluffy black cat,
-a sleek black cat, or a cream golden retriever, taking turns) slides up in the bottom-right corner, floating above whatever you're working on, and asks two things:
+A small macOS menu-bar companion. Roughly once an hour one of three buddies slides up: Toki (a fluffy black cat),
+Skwisgaar (a sleek black cat), or Appa (a cream golden retriever), taking turns. It floats up in the bottom-right corner, above whatever you're working on and asks two things:
 
 1. **What's here right now?** Tap a few feeling words, or type your own.
 2. **Anything to be grateful for, right now?** Something small is enough. "Nothing today" is a fine answer.
@@ -33,6 +33,7 @@ from the menu.
 - **Next check-in around …** shows when it will appear next.
 - **Check in now** brings the buddy up immediately.
 - **Snooze 15 minutes** and **Pause until tomorrow** (resumes at 9 am).
+- **Meet the buddies** shows all three side by side. **Check in with** picks one by name.
 - **Open journal** opens the Markdown file.
 - **Soft sound** toggles the quiet pop on arrival.
 - **Open at login** registers it as a login item.
@@ -51,6 +52,7 @@ from the menu.
 
 - Feeling words, greetings, and copy live in `Sources/CheckInModel.swift` and `Sources/BuddyView.swift`.
 - The three buddies are drawn in `Sources/BuddyFace.swift`. `BuddyKind.next()` decides whose turn it is.
+  The app icon is rendered from the same drawing by `Tools/MakeIcon`.
 - Timing lives in `Sources/Scheduler.swift`.
 - `./preview.sh` renders all three buddies in every mood, plus each step of the card, to `build/preview/` so you can check the design without
   waiting for a pop-up.

@@ -5,7 +5,7 @@ enum Mood { case neutral, attentive, happy }
 
 /// State for one check-in conversation.
 final class CheckInModel: ObservableObject {
-    enum Step { case greeting, feelings, gratitude, done }
+    enum Step { case greeting, feelings, gratitude, done, meet }
 
     @Published var step: Step = .greeting
     @Published var selected: Set<String> = []
@@ -35,9 +35,10 @@ final class CheckInModel: ObservableObject {
 
     private static let doneTitles = ["Noted.", "Got it.", "Thanks."]
 
-    init(isIntro: Bool, kind: BuddyKind = .next()) {
+    init(isIntro: Bool, kind: BuddyKind = .next(), meet: Bool = false) {
         self.isIntro = isIntro
         self.kind = kind
+        if meet { self.step = .meet }
         self.greeting = Self.greetings.randomElement()!
         self.doneTitle = Self.doneTitles.randomElement()!
     }
@@ -47,6 +48,7 @@ final class CheckInModel: ObservableObject {
         case .greeting: return .neutral
         case .feelings, .gratitude: return .attentive
         case .done: return .happy
+        case .meet: return .neutral
         }
     }
 

@@ -2,7 +2,7 @@ import SwiftUI
 
 enum Theme {
     static let accent = Color(red: 0.86, green: 0.49, blue: 0.37)
-    static let ink = Color(red: 0.16, green: 0.12, blue: 0.10)
+    static let ink = Color(red: 0.12, green: 0.09, blue: 0.08)
     static let pink = Color(red: 0.93, green: 0.58, blue: 0.62)
 }
 
@@ -11,6 +11,14 @@ enum BuddyKind: Int, CaseIterable {
     case fluffyCat, sleekCat, goldenRetriever
 
     var name: String {
+        switch self {
+        case .fluffyCat: return "Toki"
+        case .sleekCat: return "Skwisgaar"
+        case .goldenRetriever: return "Appa"
+        }
+    }
+
+    var species: String {
         switch self {
         case .fluffyCat: return "fluffy black cat"
         case .sleekCat: return "sleek black cat"
@@ -70,49 +78,39 @@ struct BuddyFace: View {
     }
 }
 
-// MARK: - Cats
+// MARK: - Cats (Toki is fluffy, Skwisgaar is sleek)
 
 private struct CatFace: View {
     let fluffy: Bool
     let mood: Mood
     let eyesClosed: Bool
 
-    private var fur: Color { fluffy ? Color(white: 0.17) : Color(white: 0.11) }
-    private var furLight: Color { fluffy ? Color(white: 0.30) : Color(white: 0.24) }
+    private var furTop: Color { fluffy ? Color(white: 0.26) : Color(white: 0.19) }
+    private var furMid: Color { fluffy ? Color(white: 0.17) : Color(white: 0.12) }
+    private var furBottom: Color { fluffy ? Color(white: 0.12) : Color(white: 0.08) }
     private var outline: Color { Color.white.opacity(0.30) }   // keeps the silhouette readable on dark cards
-    private var iris: Color { Color(red: 0.95, green: 0.78, blue: 0.24) }   // yellow, both cats
-    private var whisker: Color { Color.white.opacity(0.45) }
+    private var iris: Color {
+        fluffy ? Color(red: 0.87, green: 0.80, blue: 0.27)      // Toki: yellow with a hint of green
+               : Color(red: 0.95, green: 0.78, blue: 0.24)      // Skwisgaar: yellow
+    }
+    private var whisker: Color { Color.white.opacity(fluffy ? 0.62 : 0.45) }
+    private var noseColor: Color { fluffy ? Color(white: 0.07) : Theme.pink }
 
     var body: some View {
         ZStack {
-            // ears sit behind the head
-            CatEar(fur: fur, outline: outline, fluffy: fluffy)
-                .frame(width: fluffy ? 30 : 22, height: fluffy ? 32 : 31)
-                .rotationEffect(.degrees(mood == .attentive ? -8 : -16))
-                .offset(x: -27, y: fluffy ? -40 : -34)
-            CatEar(fur: fur, outline: outline, fluffy: fluffy)
-                .scaleEffect(x: -1)
-                .frame(width: fluffy ? 30 : 22, height: fluffy ? 32 : 31)
-                .rotationEffect(.degrees(mood == .attentive ? 8 : 16))
-                .offset(x: 27, y: fluffy ? -40 : -34)
+            ear(left: true)
+            ear(left: false)
 
             if fluffy {
-                FluffyBlob()
-                    .fill(fur)
-                    .overlay(FluffyBlob().stroke(outline, lineWidth: 1))
-                    .frame(width: 96, height: 86)
-                // a little volume on the cheeks
-                HStack(spacing: 40) {
-                    Ellipse().fill(furLight.opacity(0.5)).frame(width: 22, height: 16)
-                    Ellipse().fill(furLight.opacity(0.5)).frame(width: 22, height: 16)
-                }
-                .offset(y: 12)
+                let head = FluffyBlob(bumps: 24, amplitude: 3.2, ruff: 5.5)
+                head.fill(LinearGradient(colors: [furTop, furMid, furBottom], startPoint: .top, endPoint: .bottom))
+                    .overlay(head.stroke(outline, lineWidth: 1))
+                    .frame(width: 96, height: 92)
             } else {
                 Ellipse()
-                    .fill(fur)
+                    .fill(LinearGradient(colors: [furTop, furBottom], startPoint: .top, endPoint: .bottom))
                     .overlay(Ellipse().stroke(outline, lineWidth: 1))
                     .frame(width: 84, height: 72)
-                // glossy sheen
                 Ellipse()
                     .fill(Color.white.opacity(0.12))
                     .frame(width: 38, height: 14)
@@ -120,33 +118,60 @@ private struct CatFace: View {
                     .offset(x: -14, y: -22)
             }
 
-            HStack(spacing: fluffy ? 18 : 20) {
-                CatEye(mood: mood, closed: eyesClosed, iris: iris, sleek: !fluffy)
-                CatEye(mood: mood, closed: eyesClosed, iris: iris, sleek: !fluffy)
+            HStack(spacing: fluffy ? 15 : 18) {
+                CatEye(mood: mood, closed: eyesClosed, iris: iris, tilt: -7)
+                CatEye(mood: mood, closed: eyesClosed, iris: iris, tilt: 7)
             }
-            .offset(y: -2)
+            .offset(y: -3)
 
-            NoseShape()
-                .fill(Theme.pink)
-                .frame(width: 7, height: 5)
-                .offset(y: 12)
+            if fluffy {
+                // brow whiskers
+                BrowWhiskers()
+                    .stroke(whisker, style: StrokeStyle(lineWidth: 0.9, lineCap: .round))
+                    .frame(width: 11, height: 12)
+                    .offset(x: -18, y: -19)
+                BrowWhiskers()
+                    .stroke(whisker, style: StrokeStyle(lineWidth: 0.9, lineCap: .round))
+                    .frame(width: 11, height: 12)
+                    .scaleEffect(x: -1)
+                    .offset(x: 18, y: -19)
+            }
+
+            ZStack {
+                NoseShape().fill(noseColor)
+                Ellipse().fill(.white.opacity(fluffy ? 0.28 : 0.45))
+                    .frame(width: 3, height: 1.4).offset(x: -1.2, y: -1.2)
+            }
+            .frame(width: 7, height: 5)
+            .offset(y: 11)
 
             CatMouth()
-                .stroke(furLight.opacity(1.6), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
+                .stroke(Color(white: fluffy ? 0.5 : 0.4), style: StrokeStyle(lineWidth: 1.3, lineCap: .round))
                 .frame(width: mood == .happy ? 16 : 13, height: 5)
-                .offset(y: 18.5)
+                .offset(y: 17.5)
 
-            Whiskers()
+            Whiskers(count: fluffy ? 4 : 3, curved: fluffy)
                 .stroke(whisker, style: StrokeStyle(lineWidth: 1, lineCap: .round))
-                .frame(width: 26, height: 16)
-                .offset(x: 36, y: 13)
-            Whiskers()
+                .frame(width: fluffy ? 30 : 26, height: fluffy ? 18 : 16)
+                .offset(x: fluffy ? 38 : 36, y: 12)
+            Whiskers(count: fluffy ? 4 : 3, curved: fluffy)
                 .stroke(whisker, style: StrokeStyle(lineWidth: 1, lineCap: .round))
-                .frame(width: 26, height: 16)
+                .frame(width: fluffy ? 30 : 26, height: fluffy ? 18 : 16)
                 .scaleEffect(x: -1)
-                .offset(x: -36, y: 13)
+                .offset(x: fluffy ? -38 : -36, y: 12)
         }
         .offset(y: 8)
+    }
+
+    private func ear(left: Bool) -> some View {
+        let w: CGFloat = fluffy ? 32 : 22
+        let h: CGFloat = fluffy ? 36 : 31
+        let tilt: Double = mood == .attentive ? 6 : 15
+        return CatEar(fur: furMid, outline: outline, fluffy: fluffy)
+            .frame(width: w, height: h)
+            .scaleEffect(x: left ? 1 : -1)
+            .rotationEffect(.degrees(left ? -tilt : tilt))
+            .offset(x: left ? -27 : 27, y: fluffy ? -40 : -34)
     }
 }
 
@@ -156,18 +181,25 @@ private struct CatEar: View {
     let fluffy: Bool
 
     var body: some View {
-        ZStack {
-            EarShape().fill(fur)
-            EarShape().stroke(outline, lineWidth: 1)
-            EarShape()
-                .fill(Theme.pink.opacity(0.75))
-                .scaleEffect(x: 0.5, y: 0.55, anchor: .bottom)
-                .offset(y: -2)
-            if fluffy {
-                // lynx-style tuft at the tip
-                EarShape().fill(fur).frame(width: 5, height: 11).offset(y: -19)
-                EarShape().stroke(outline, lineWidth: 0.8).frame(width: 5, height: 11).offset(y: -19)
+        GeometryReader { geo in
+            let h = geo.size.height
+            ZStack {
+                EarShape().fill(fur)
+                EarShape().stroke(outline, lineWidth: 1)
+                EarShape()
+                    .fill(fluffy ? Color(red: 0.62, green: 0.46, blue: 0.46).opacity(0.75)
+                                 : Theme.pink.opacity(0.75))
+                    .scaleEffect(x: 0.5, y: 0.58, anchor: .bottom)
+                    .offset(y: -2)
+                if fluffy {
+                    // lynx tufts
+                    TuftShape()
+                        .stroke(Color.white.opacity(0.55), style: StrokeStyle(lineWidth: 0.9, lineCap: .round))
+                        .frame(width: 14, height: 16)
+                        .offset(y: -h / 2 - 6)
+                }
             }
+            .frame(width: geo.size.width, height: h)
         }
     }
 }
@@ -176,33 +208,37 @@ private struct CatEye: View {
     let mood: Mood
     let closed: Bool
     let iris: Color
-    let sleek: Bool
+    let tilt: Double
 
     var body: some View {
         Group {
             if mood == .happy {
                 HappyEye()
                     .stroke(iris, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
-                    .frame(width: 11, height: 6)
+                    .frame(width: 12, height: 6)
             } else {
                 let wide = mood == .attentive
-                let w: CGFloat = sleek ? 14 : 13
-                let h: CGFloat = wide ? 12 : (sleek ? 8 : 10)
+                let w: CGFloat = 16
+                let h: CGFloat = wide ? 12 : 9.5
                 ZStack {
-                    Ellipse().fill(iris).frame(width: w, height: h)
+                    AlmondShape()
+                        .fill(LinearGradient(colors: [iris.opacity(0.85), iris], startPoint: .top, endPoint: .bottom))
                     // pupils dilate when a cat is interested
                     if wide {
-                        Circle().fill(Theme.ink).frame(width: h * 0.78, height: h * 0.78)
+                        Circle().fill(Theme.ink).frame(width: h * 0.72, height: h * 0.72)
                     } else {
-                        Capsule().fill(Theme.ink).frame(width: 3, height: h * 0.85)
+                        Capsule().fill(Theme.ink).frame(width: 2.8, height: h * 0.9)
                     }
                     Circle().fill(.white.opacity(0.9)).frame(width: 2.6, height: 2.6)
-                        .offset(x: -2.5, y: -2.2)
+                        .offset(x: -3, y: -2)
                 }
+                .frame(width: w, height: h)
+                .clipShape(AlmondShape())
+                .rotationEffect(.degrees(tilt))
                 .scaleEffect(y: closed ? 0.08 : 1, anchor: .center)
             }
         }
-        .frame(width: 14, height: 12)
+        .frame(width: 16, height: 12)
     }
 }
 
@@ -233,6 +269,18 @@ struct FluffyBlob: Shape {
     }
 }
 
+/// Cat eye: pointed at both corners.
+private struct AlmondShape: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: r.minX, y: r.midY))
+        p.addQuadCurve(to: CGPoint(x: r.maxX, y: r.midY), control: CGPoint(x: r.midX, y: r.minY - r.height * 0.45))
+        p.addQuadCurve(to: CGPoint(x: r.minX, y: r.midY), control: CGPoint(x: r.midX, y: r.maxY + r.height * 0.45))
+        p.closeSubpath()
+        return p
+    }
+}
+
 private struct EarShape: Shape {
     func path(in r: CGRect) -> Path {
         var p = Path()
@@ -242,6 +290,41 @@ private struct EarShape: Shape {
         p.addQuadCurve(to: CGPoint(x: r.maxX, y: r.maxY),
                        control: CGPoint(x: r.maxX - r.width * 0.12, y: r.midY))
         p.closeSubpath()
+        return p
+    }
+}
+
+/// Three wisps rising from an ear tip.
+private struct TuftShape: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        let base = CGPoint(x: r.midX, y: r.maxY)
+        p.move(to: base); p.addQuadCurve(to: CGPoint(x: r.midX - 5, y: r.minY + 2), control: CGPoint(x: r.midX - 1, y: r.midY))
+        p.move(to: base); p.addQuadCurve(to: CGPoint(x: r.midX - 1, y: r.minY), control: CGPoint(x: r.midX, y: r.midY))
+        p.move(to: base); p.addQuadCurve(to: CGPoint(x: r.midX + 4, y: r.minY + 4), control: CGPoint(x: r.midX + 1, y: r.midY))
+        return p
+    }
+}
+
+private struct InnerEarFur: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        for f in [0.25, 0.5, 0.75] {
+            let x = r.minX + r.width * CGFloat(f)
+            p.move(to: CGPoint(x: x, y: r.maxY))
+            p.addLine(to: CGPoint(x: x + (CGFloat(f) - 0.5) * 6, y: r.minY + r.height * 0.3))
+        }
+        return p
+    }
+}
+
+private struct BrowWhiskers: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        let base = CGPoint(x: r.maxX, y: r.maxY)
+        p.move(to: base); p.addLine(to: CGPoint(x: r.minX, y: r.midY + 1))
+        p.move(to: base); p.addLine(to: CGPoint(x: r.minX + 4, y: r.minY))
+        p.move(to: base); p.addLine(to: CGPoint(x: r.midX + 2, y: r.minY - 2))
         return p
     }
 }
@@ -271,61 +354,85 @@ private struct CatMouth: Shape {
 }
 
 private struct Whiskers: Shape {
+    var count: Int = 3
+    var curved: Bool = false
+
     func path(in r: CGRect) -> Path {
         var p = Path()
-        p.move(to: CGPoint(x: r.minX, y: r.midY - 2)); p.addLine(to: CGPoint(x: r.maxX, y: r.minY))
-        p.move(to: CGPoint(x: r.minX, y: r.midY));     p.addLine(to: CGPoint(x: r.maxX, y: r.midY + 1))
-        p.move(to: CGPoint(x: r.minX, y: r.midY + 2)); p.addLine(to: CGPoint(x: r.maxX, y: r.maxY))
+        for i in 0..<count {
+            let f = CGFloat(i) / CGFloat(max(count - 1, 1))          // 0...1 top to bottom
+            let start = CGPoint(x: r.minX, y: r.midY - 3 + f * 6)
+            let end = CGPoint(x: r.maxX, y: r.minY + f * r.height)
+            p.move(to: start)
+            if curved {
+                let ctrl = CGPoint(x: r.midX, y: (start.y + end.y) / 2 + (f - 0.5) * 4)
+                p.addQuadCurve(to: end, control: ctrl)
+            } else {
+                p.addLine(to: end)
+            }
+        }
         return p
     }
 }
 
-// MARK: - Golden retriever
+// MARK: - Appa the golden retriever
 
 private struct DogFace: View {
     let mood: Mood
     let eyesClosed: Bool
 
-    private let cream = Color(red: 0.97, green: 0.93, blue: 0.84)
-    private let creamLight = Color(red: 0.99, green: 0.97, blue: 0.91)
-    private let creamDark = Color(red: 0.90, green: 0.82, blue: 0.66)
-    private let creamLine = Color(red: 0.72, green: 0.61, blue: 0.44)
-    private let brown = Color(red: 0.28, green: 0.19, blue: 0.13)
+    private let cream = Color(red: 0.97, green: 0.94, blue: 0.86)
+    private let creamLight = Color(red: 0.995, green: 0.98, blue: 0.93)
+    private let warm = Color(red: 0.93, green: 0.83, blue: 0.64)
+    private let earTop = Color(red: 0.91, green: 0.77, blue: 0.53)
+    private let earBottom = Color(red: 0.83, green: 0.66, blue: 0.42)
+    private let line = Color(red: 0.72, green: 0.60, blue: 0.42)
+    private let brown = Color(red: 0.16, green: 0.10, blue: 0.07)
+    private let mouthDark = Color(red: 0.24, green: 0.10, blue: 0.09)
 
     var body: some View {
         ZStack {
-            // floppy ears hang behind the head
-            DogEar(fill: creamDark, line: creamLine)
-                .rotationEffect(.degrees(mood == .attentive ? -14 : -7))
-                .offset(x: -39, y: 10)
-            DogEar(fill: creamDark, line: creamLine)
-                .rotationEffect(.degrees(mood == .attentive ? 14 : 7))
-                .offset(x: 39, y: 10)
+            // floppy, fluffy ears set high and behind the head
+            DogEar(top: earTop, bottom: earBottom, line: line)
+                .rotationEffect(.degrees(mood == .attentive ? 16 : 7), anchor: .top)
+                .offset(x: -42, y: 6)
+            DogEar(top: earTop, bottom: earBottom, line: line)
+                .rotationEffect(.degrees(mood == .attentive ? -16 : -7), anchor: .top)
+                .offset(x: 42, y: 6)
 
-            Ellipse()
-                .fill(LinearGradient(colors: [creamLight, cream], startPoint: .top, endPoint: .bottom))
-                .overlay(Ellipse().stroke(creamLine.opacity(0.5), lineWidth: 1))
-                .frame(width: 86, height: 74)
+            let head = FluffyBlob(bumps: 36, amplitude: 0.8, ruff: 1.2)
+            head.fill(LinearGradient(colors: [creamLight, cream], startPoint: .top, endPoint: .bottom))
+                .overlay(head.stroke(line.opacity(0.45), lineWidth: 1))
+                .frame(width: 92, height: 80)
+
+            // warmer tone across the crown, like the photo
+            Ellipse().fill(warm.opacity(0.22))
+                .frame(width: 54, height: 18)
+                .offset(y: -26)
+                .blur(radius: 3)
 
             // muzzle
-            Ellipse()
-                .fill(Color.white.opacity(0.5))
-                .frame(width: 38, height: 24)
-                .offset(y: 15)
+            Ellipse().fill(Color.white.opacity(0.55))
+                .frame(width: 42, height: 28)
+                .offset(y: 14)
 
-            HStack(spacing: 26) {
+            HStack(spacing: 24) {
                 DogEye(mood: mood, closed: eyesClosed, brown: brown)
                 DogEye(mood: mood, closed: eyesClosed, brown: brown)
             }
-            .offset(y: -5)
+            .offset(y: -7)
 
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .fill(Theme.ink)
-                .frame(width: 13, height: 9)
-                .overlay(
-                    Ellipse().fill(.white.opacity(0.35)).frame(width: 5, height: 2.5).offset(x: -2, y: -2)
-                )
-                .offset(y: 9)
+            // big black nose
+            ZStack {
+                RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Theme.ink)
+                Ellipse().fill(.white.opacity(0.35)).frame(width: 6, height: 3).offset(x: -3.5, y: -3)
+            }
+            .frame(width: 17, height: 12)
+            .offset(y: 6)
+
+            if mood != .happy {
+                Capsule().fill(brown.opacity(0.55)).frame(width: 1.4, height: 5).offset(y: 14.5)
+            }
 
             mouth
         }
@@ -337,34 +444,41 @@ private struct DogFace: View {
         switch mood {
         case .happy:
             ZStack {
-                SmileMouth().fill(brown)
-                Ellipse().fill(Theme.pink).frame(width: 9, height: 8).offset(y: 4)
-                    .clipShape(SmileMouth())
+                SmileMouth().fill(mouthDark)
+                Ellipse().fill(Theme.pink).frame(width: 15, height: 13).offset(y: 5)
+                // the two little lower teeth
+                HStack(spacing: 13) {
+                    RoundedRectangle(cornerRadius: 1).fill(.white.opacity(0.95)).frame(width: 2.6, height: 3)
+                    RoundedRectangle(cornerRadius: 1).fill(.white.opacity(0.95)).frame(width: 2.6, height: 3)
+                }
+                .offset(y: 6.5)
             }
-            .frame(width: 20, height: 11)
-            .offset(y: 20)
+            .frame(width: 26, height: 13)
+            .clipShape(SmileMouth())
+            .offset(y: 21)
         case .attentive:
             SoftSmile()
                 .stroke(brown, style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
-                .frame(width: 10, height: 4)
-                .offset(y: 19)
+                .frame(width: 12, height: 4)
+                .offset(y: 20)
         case .neutral:
             SoftSmile()
                 .stroke(brown, style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
-                .frame(width: 16, height: 6)
-                .offset(y: 19)
+                .frame(width: 18, height: 6)
+                .offset(y: 20)
         }
     }
 }
 
 private struct DogEar: View {
-    let fill: Color
+    let top: Color
+    let bottom: Color
     let line: Color
     var body: some View {
-        RoundedRectangle(cornerRadius: 12, style: .circular)
-            .fill(fill)
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .circular).stroke(line.opacity(0.55), lineWidth: 1))
-            .frame(width: 24, height: 48)
+        let shape = FluffyBlob(bumps: 14, amplitude: 0.9, ruff: 1.2)
+        shape.fill(LinearGradient(colors: [top, bottom], startPoint: .top, endPoint: .bottom))
+            .overlay(shape.stroke(line.opacity(0.5), lineWidth: 1))
+            .frame(width: 30, height: 54)
     }
 }
 
@@ -378,18 +492,19 @@ private struct DogEye: View {
             if mood == .happy {
                 HappyEye()
                     .stroke(brown, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
-                    .frame(width: 10, height: 6)
+                    .frame(width: 11, height: 6)
             } else {
-                let d: CGFloat = mood == .attentive ? 10.5 : 9.5
-                Circle().fill(brown).frame(width: d, height: d)
-                    .overlay(alignment: .topLeading) {
-                        Circle().fill(.white.opacity(0.9)).frame(width: 3.2, height: 3.2)
-                            .offset(x: 1.6, y: 1.6)
-                    }
-                    .scaleEffect(y: closed ? 0.08 : 1, anchor: .center)
+                let d: CGFloat = mood == .attentive ? 12 : 11
+                ZStack {
+                    Circle().fill(brown)
+                    Circle().fill(.white.opacity(0.92)).frame(width: 3.6, height: 3.6).offset(x: -2.4, y: -2.6)
+                    Circle().fill(.white.opacity(0.5)).frame(width: 1.6, height: 1.6).offset(x: 2.4, y: 2.2)
+                }
+                .frame(width: d, height: d)
+                .scaleEffect(y: closed ? 0.08 : 1, anchor: .center)
             }
         }
-        .frame(width: 11, height: 11)
+        .frame(width: 12, height: 12)
     }
 }
 

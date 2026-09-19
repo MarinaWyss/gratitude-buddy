@@ -20,7 +20,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         scheduler.onChange = { [weak self] in self?.refreshMenu() }
         scheduler.start()
 
-        if !Settings.hasLaunchedBefore {
+        if CommandLine.arguments.contains("--meet") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                self?.buddy.show(intro: false, meet: true)
+            }
+        } else if !Settings.hasLaunchedBefore {
             Settings.hasLaunchedBefore = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
                 self?.buddy.show(intro: true)
@@ -44,6 +48,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "Check in now", action: #selector(checkInNow), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Snooze 15 minutes", action: #selector(snooze), keyEquivalent: ""))
         menu.addItem(pauseItem)
+        menu.addItem(.separator())
+        menu.addItem(NSMenuItem(title: "Meet the buddies", action: #selector(meetBuddies), keyEquivalent: ""))
+        let withItem = NSMenuItem(title: "Check in with", action: nil, keyEquivalent: "")
+        let withMenu = NSMenu()
+        for kind in BuddyKind.allCases {
+            let item = NSMenuItem(title: kind.name, action: #selector(checkInWith(_:)), keyEquivalent: "")
+            item.tag = kind.rawValue
+            item.target = self
+            withMenu.addItem(item)
+        }
+        withItem.submenu = withMenu
+        menu.addItem(withItem)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Open journal", action: #selector(openJournal), keyEquivalent: ""))
         menu.addItem(soundItem)
@@ -84,6 +100,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func checkInNow() {
         buddy.show(intro: false)
+    }
+
+    @objc private func meetBuddies() {
+        buddy.show(intro: false, meet: true)
+    }
+
+    @objc private func checkInWith(_ sender: NSMenuItem) {
+        guard let kind = BuddyKind(rawValue: sender.tag) else { return }
+        buddy.show(intro: false, kind: kind)
     }
 
     @objc private func snooze() {
@@ -151,6 +176,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             scheduler.schedule(in: 30 * 60)
         case .timedOut:
             scheduler.scheduleNext()
+        case .closed:
+            break
         }
     }
 

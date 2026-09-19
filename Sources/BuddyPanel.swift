@@ -23,6 +23,7 @@ final class BuddyPanelController {
         case completed(JournalEntry)
         case dismissed
         case timedOut
+        case closed          // demo card closed; leave the schedule alone
     }
 
     var onOutcome: ((Outcome) -> Void)?
@@ -52,12 +53,13 @@ final class BuddyPanelController {
         panel.onEscape = { [weak self] in self?.escape() }
     }
 
-    func show(intro: Bool) {
-        guard !isShowing else { return }
+    func show(intro: Bool, kind: BuddyKind? = nil, meet: Bool = false) {
+        if isShowing { hide { [weak self] in self?.show(intro: intro, kind: kind, meet: meet) }; return }
 
-        let model = CheckInModel(isIntro: intro)
+        let model = kind.map { CheckInModel(isIntro: intro, kind: $0, meet: meet) }
+            ?? (meet ? CheckInModel(isIntro: intro, kind: .fluffyCat, meet: true) : CheckInModel(isIntro: intro))
         model.onDismiss = { [weak self] in
-            self?.hide { self?.onOutcome?(.dismissed) }
+            self?.hide { self?.onOutcome?(meet ? .closed : .dismissed) }
         }
         model.onComplete = { [weak self, weak model] entry in
             self?.onOutcome?(.completed(entry))

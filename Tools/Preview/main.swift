@@ -64,3 +64,6 @@ g.step = .gratitude; g.gratitude = "the light coming through the window"
 snapshot(BuddyView(model: g), name: "4-gratitude", dark: true)
 g.step = .done
 snapshot(BuddyView(model: g), name: "5-done", dark: true)
+
+let meet = CheckInModel(isIntro: false, kind: .fluffyCat, meet: true)
+snapshot(BuddyView(model: meet), name: "6-meet", dark: false)
