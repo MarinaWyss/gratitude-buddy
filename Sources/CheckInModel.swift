@@ -43,14 +43,14 @@ final class CheckInModel: ObservableObject {
         "This hour won't come around again. That's what makes it worth noticing.",
         "You won't always be here. Right now, you are.",
         "Someday you'll miss an ordinary afternoon like this one.",
-        "Everything you love is temporary. That's not sad, it's what makes it precious.",
+        "Everything you love is temporary.",
         "The days are long and the years are short.",
-        "One of these ordinary days will be the last one. Be gentle with this one.",
-        "Memento mori: remember you'll die, so remember to live.",
-        "Nobody gets to keep any of this. All the more reason to look at it.",
-        "Someday isn't a day of the week.",
-        "The people you love are mortal too. Tell them things.",
-        "You are alive right now. That's the whole thing.",
+        "One of these ordinary days will be the last one.",
+        "Remember you'll die, so remember to live.",
+        "Nothing is permanent.",
+        "We never arrive at someday. Today is all there is.",
+        "The people you love are mortal too.",
+        "You are alive right now. Don't forget.",
     ]
 
     /// Roughly one check-in in three carries a reflection.
