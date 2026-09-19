@@ -9,7 +9,7 @@ struct BuddyView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            card.padding(.top, model.step == .meet ? 0 : 62)
+            card.padding(.top, model.step == .meet ? 0 : 98)
             if model.step != .meet {
                 BuddyFace(kind: model.kind, mood: model.mood).padding(.leading, 18)
             }
@@ -29,7 +29,7 @@ struct BuddyView: View {
             content
         }
         .padding(.horizontal, 20)
-        .padding(.top, model.step == .meet ? 20 : 46)
+        .padding(.top, model.step == .meet ? 20 : 66)
         .padding(.bottom, 18)
         .frame(width: 340, alignment: .leading)
         .background(
@@ -59,7 +59,7 @@ struct BuddyView: View {
         Group {
             if model.isIntro {
                 TitleText("Hi. I'm \(model.kind.name).")
-                BodyText("About once an hour I'll pop up and ask two quick things: how you're feeling, and whether there's anything to be grateful for.\n\nYou can snooze or pause me from the leaf in your menu bar.\n\nThere are three of us, Toki, Skwisgaar and Appa, and we take turns. Want to try one now?")
+                BodyText("About once an hour I'll pop up and ask two quick things: how you're feeling, and whether there's anything to be grateful for.\n\nYou can snooze or pause me from the paw in your menu bar.\n\nThere are three of us, Toki, Skwisgaar and Appa, and we take turns. Want to try one now?")
             } else {
                 TitleText(model.greeting)
                 BodyText("Take one slow breath first.")
@@ -80,6 +80,13 @@ struct BuddyView: View {
     private var feelings: some View {
         Group {
             TitleText("What's here right now?")
+            if let line = model.reflection {
+                Text(line)
+                    .font(.system(size: 13, design: .serif).italic())
+                    .foregroundStyle(Theme.accent)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 2)
+            }
             BodyText("Pick whatever fits. Nothing to fix.")
             FlowLayout(spacing: 6) {
                 ForEach(CheckInModel.feelings, id: \.self) { f in
@@ -254,7 +261,7 @@ private struct MeetView: View {
             HStack(spacing: 0) {
                 ForEach(Array(BuddyKind.allCases.enumerated()), id: \.element.rawValue) { i, kind in
                     VStack(spacing: 2) {
-                        BuddyFace(kind: kind, mood: moods[(tick + i) % moods.count])
+                        BuddyFace(kind: kind, mood: moods[(tick + i) % moods.count], size: 110)
                         Text(kind.name)
                             .font(.system(size: 12, weight: .medium, design: .rounded))
                         Text(kind.species)

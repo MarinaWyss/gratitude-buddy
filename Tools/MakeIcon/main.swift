@@ -16,9 +16,8 @@ struct IconView: View {
                 .fill(Color(red: 0.99, green: 0.95, blue: 0.89))
                 .frame(width: 824, height: 824)
                 .shadow(color: .black.opacity(0.22), radius: 24, y: 10)
-            BuddyFace(kind: .fluffyCat, mood: .neutral)
-                .scaleEffect(6.3)
-                .offset(y: 6)
+            BuddyFace(kind: .fluffyCat, mood: .neutral, size: 720)
+                .offset(y: 8)
         }
         .frame(width: 1024, height: 1024)
     }

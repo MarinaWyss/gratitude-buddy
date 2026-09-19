@@ -35,24 +35,84 @@ enum BuddyKind: Int, CaseIterable {
     }
 }
 
+
+extension BuddyKind {
+    var slug: String { name.lowercased() }
+}
+
+extension Mood {
+    var slug: String {
+        switch self {
+        case .neutral: return "neutral"
+        case .attentive: return "curious"
+        case .happy: return "happy"
+        }
+    }
+}
+
+/// Illustrated art for each buddy and mood, e.g. `toki-curious.png`. Looked up in the app bundle's
+/// `buddies` folder, then `$BUDDY_ART_DIR`, then `Resources/buddies` under the working directory
+/// (for the preview and icon tools). A missing mood falls back to neutral; a missing buddy falls
+/// back to the drawn version below.
+enum BuddyArt {
+    private static var cache: [String: NSImage?] = [:]
+
+    private static var directories: [URL] {
+        var dirs: [URL] = []
+        if let res = Bundle.main.resourceURL { dirs.append(res.appendingPathComponent("buddies")) }
+        if let env = ProcessInfo.processInfo.environment["BUDDY_ART_DIR"] { dirs.append(URL(fileURLWithPath: env)) }
+        dirs.append(URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("Resources/buddies"))
+        return dirs
+    }
+
+    static func image(for kind: BuddyKind, mood: Mood) -> NSImage? {
+        let key = "\(kind.slug)-\(mood.slug)"
+        if let cached = cache[key] { return cached }
+        var found: NSImage? = nil
+        for dir in directories {
+            if let img = NSImage(contentsOf: dir.appendingPathComponent(key + ".png")) { found = img; break }
+        }
+        if found == nil, mood != .neutral { found = image(for: kind, mood: .neutral) }
+        cache[key] = found
+        return found
+    }
+}
+
 /// Shared frame, bobbing and blinking. The species-specific drawing lives below.
 struct BuddyFace: View {
     var kind: BuddyKind
     var mood: Mood
+    var size: CGFloat = 150          // height in points
 
     @State private var eyesClosed = false
     @State private var bobbing = false
     @State private var alive = false
 
+    private static let moods: [Mood] = [.neutral, .attentive, .happy]
+
     var body: some View {
-        ZStack {
-            switch kind {
-            case .fluffyCat: CatFace(fluffy: true, mood: mood, eyesClosed: eyesClosed)
-            case .sleekCat: CatFace(fluffy: false, mood: mood, eyesClosed: eyesClosed)
-            case .goldenRetriever: DogFace(mood: mood, eyesClosed: eyesClosed)
+        Group {
+            if BuddyArt.image(for: kind, mood: .neutral) != nil {
+                // Every expression is laid out, only the current one is visible, so moods crossfade.
+                ZStack(alignment: .bottom) {
+                    ForEach(Self.moods, id: \.slug) { m in
+                        if let art = BuddyArt.image(for: kind, mood: m) {
+                            Image(nsImage: art)
+                                .resizable()
+                                .interpolation(.high)
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: size)
+                                .opacity(m == mood ? 1 : 0)
+                        }
+                    }
+                }
+                .scaleEffect(mood == .attentive ? 1.03 : 1, anchor: .bottom)
+            } else {
+                drawn
+                    .scaleEffect(size / 110)
+                    .frame(width: 100 * size / 110, height: size)
             }
         }
-        .frame(width: 100, height: 110)
         .offset(y: bobbing ? -2.5 : 2.5)
         .animation(.spring(response: 0.45, dampingFraction: 0.7), value: mood)
         .onAppear {
@@ -63,6 +123,18 @@ struct BuddyFace: View {
             scheduleBlink()
         }
         .onDisappear { alive = false }
+    }
+
+    /// Vector fallback, used only when no illustration is available.
+    private var drawn: some View {
+        ZStack {
+            switch kind {
+            case .fluffyCat: CatFace(fluffy: true, mood: mood, eyesClosed: eyesClosed)
+            case .sleekCat: CatFace(fluffy: false, mood: mood, eyesClosed: eyesClosed)
+            case .goldenRetriever: DogFace(mood: mood, eyesClosed: eyesClosed)
+            }
+        }
+        .frame(width: 100, height: 110)
     }
 
     private func scheduleBlink() {

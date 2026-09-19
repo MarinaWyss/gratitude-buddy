@@ -50,6 +50,7 @@ final class BuddyPanelController {
         panel.isMovableByWindowBackground = true
         panel.isReleasedWhenClosed = false
         panel.animationBehavior = .none
+        panel.appearance = NSAppearance(named: .aqua)   // always light: the illustrations are drawn for a light background
         panel.onEscape = { [weak self] in self?.escape() }
     }
 

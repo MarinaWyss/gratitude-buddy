@@ -49,7 +49,6 @@ struct BuddySheet: View {
 }
 
 snapshot(BuddySheet(), name: "0-buddies-light", dark: false)
-snapshot(BuddySheet(), name: "0-buddies-dark", dark: true)
 
 let intro = CheckInModel(isIntro: true, kind: .fluffyCat)
 snapshot(BuddyView(model: intro), name: "1-intro", dark: false)
@@ -58,12 +57,15 @@ let m = CheckInModel(isIntro: false, kind: .sleekCat)
 snapshot(BuddyView(model: m), name: "2-greeting", dark: false)
 m.step = .feelings; m.selected = ["calm", "tired"]
 snapshot(BuddyView(model: m), name: "3-feelings", dark: false)
+let mr = CheckInModel(isIntro: false, kind: .sleekCat, reflection: CheckInModel.reflections[0])
+mr.step = .feelings; mr.selected = ["calm"]
+snapshot(BuddyView(model: mr), name: "3b-feelings-reflection", dark: false)
 
 let g = CheckInModel(isIntro: false, kind: .goldenRetriever)
 g.step = .gratitude; g.gratitude = "the light coming through the window"
-snapshot(BuddyView(model: g), name: "4-gratitude", dark: true)
+snapshot(BuddyView(model: g), name: "4-gratitude", dark: false)
 g.step = .done
-snapshot(BuddyView(model: g), name: "5-done", dark: true)
+snapshot(BuddyView(model: g), name: "5-done", dark: false)
 
 let meet = CheckInModel(isIntro: false, kind: .fluffyCat, meet: true)
 snapshot(BuddyView(model: meet), name: "6-meet", dark: false)

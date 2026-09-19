@@ -16,6 +16,8 @@ final class CheckInModel: ObservableObject {
     let kind: BuddyKind
     let greeting: String
     let doneTitle: String
+    /// Occasionally, a small reminder that time is finite. Gratitude-flavoured, not grim.
+    let reflection: String?
 
     var onDismiss: (() -> Void)?
     var onComplete: ((JournalEntry) -> Void)?
@@ -35,12 +37,37 @@ final class CheckInModel: ObservableObject {
 
     private static let doneTitles = ["Noted.", "Got it.", "Thanks."]
 
-    init(isIntro: Bool, kind: BuddyKind = .next(), meet: Bool = false) {
+    static let reflections = [
+        "Remember, it's later than you think.",
+        "Today is all we ever really have.",
+        "This hour won't come around again. That's what makes it worth noticing.",
+        "You won't always be here. Right now, you are.",
+        "Someday you'll miss an ordinary afternoon like this one.",
+        "Everything you love is temporary. That's not sad, it's what makes it precious.",
+        "The days are long and the years are short.",
+        "One of these ordinary days will be the last one. Be gentle with this one.",
+        "Memento mori: remember you'll die, so remember to live.",
+        "Nobody gets to keep any of this. All the more reason to look at it.",
+        "Someday isn't a day of the week.",
+        "The people you love are mortal too. Tell them things.",
+        "You are alive right now. That's the whole thing.",
+    ]
+
+    /// Roughly one check-in in three carries a reflection.
+    static let reflectionChance = 0.35
+
+    init(isIntro: Bool, kind: BuddyKind = .next(), meet: Bool = false, reflection: String?? = nil) {
         self.isIntro = isIntro
         self.kind = kind
         if meet { self.step = .meet }
         self.greeting = Self.greetings.randomElement()!
         self.doneTitle = Self.doneTitles.randomElement()!
+        if let forced = reflection {
+            self.reflection = forced
+        } else {
+            self.reflection = (!isIntro && Double.random(in: 0..<1) < Self.reflectionChance)
+                ? Self.reflections.randomElement() : nil
+        }
     }
 
     var mood: Mood {

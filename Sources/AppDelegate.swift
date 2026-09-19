@@ -38,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func buildStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
-            let img = NSImage(systemSymbolName: "leaf.fill", accessibilityDescription: "Gratitude Buddy")
+            let img = NSImage(systemSymbolName: "pawprint.fill", accessibilityDescription: "Gratitude Buddy")
             img?.isTemplate = true
             button.image = img
         }

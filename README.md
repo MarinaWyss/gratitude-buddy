@@ -8,7 +8,8 @@ Skwisgaar (a sleek black cat), or Appa (a cream golden retriever), taking turns.
 
 Then it says thanks and slides away.
 
-<p align="center"><img src="docs/buddies.png" width="360" alt="The three buddies"> <img src="docs/card.png" width="376" alt="The check-in card"></p>
+<p align="center"><img src="docs/buddies.png" width="520" alt="Skwisgaar, Toki and Appa"></p>
+<p align="center"><img src="docs/card.png" width="376" alt="The check-in card"></p>
 
 ## Privacy
 
@@ -28,7 +29,7 @@ open "build/Gratitude Buddy.app"
 To keep it around, drag `build/Gratitude Buddy.app` into `/Applications` and turn on **Open at login**
 from the menu.
 
-## The menu (the leaf in your menu bar)
+## The menu (the paw in your menu bar)
 
 - **Next check-in around …** shows when it will appear next.
 - **Check in now** brings the buddy up immediately.
@@ -47,12 +48,17 @@ from the menu.
 - If you've been away from the keyboard for more than five minutes, it waits until you're back.
 - If it sits ignored for 15 minutes it slides away on its own.
 - Drag the card anywhere by its background.
+- The card is always light, whatever your system appearance, because the illustrations are drawn for white.
+- About one check-in in three carries a short reflection on the feelings step, a gentle reminder that time is
+  finite. The lines live in `Sources/CheckInModel.swift` if you want to add your own.
 
 ## Tweaking
 
 - Feeling words, greetings, and copy live in `Sources/CheckInModel.swift` and `Sources/BuddyView.swift`.
-- The three buddies are drawn in `Sources/BuddyFace.swift`. `BuddyKind.next()` decides whose turn it is.
-  The app icon is rendered from the same drawing by `Tools/MakeIcon`.
+- The buddies are illustrations in `Resources/buddies/`, one PNG per character and mood
+  (`toki-neutral.png`, `toki-curious.png`, `toki-happy.png`, and likewise for `skwisgaar` and `appa`).
+  Replace a file to change the art. `Sources/BuddyFace.swift` holds a drawn fallback used if a file is missing,
+  and `BuddyKind.next()` decides whose turn it is. The app icon is rendered from Toki's illustration by `Tools/MakeIcon`.
 - Timing lives in `Sources/Scheduler.swift`.
 - `./preview.sh` renders all three buddies in every mood, plus each step of the card, to `build/preview/` so you can check the design without
   waiting for a pop-up.

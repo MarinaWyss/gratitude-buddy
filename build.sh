@@ -18,6 +18,8 @@ swiftc -O -swift-version 5 \
   -o "$APP/Contents/MacOS/$NAME"
 
 cp Info.plist "$APP/Contents/Info.plist"
+mkdir -p "$APP/Contents/Resources/buddies"
+cp Resources/buddies/*.png "$APP/Contents/Resources/buddies/"
 
 echo "▸ icon"
 if swiftc -O -swift-version 5 -target "$ARCH-apple-macosx14.0" \
