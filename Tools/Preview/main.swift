@@ -69,3 +69,8 @@ snapshot(BuddyView(model: g), name: "5-done", dark: false)
 
 let meet = CheckInModel(isIntro: false, kind: .fluffyCat, meet: true)
 snapshot(BuddyView(model: meet), name: "6-meet", dark: false)
+
+for (i, line) in CheckInModel.reminders.enumerated() {
+    let r = CheckInModel(isIntro: false, kind: BuddyKind.allCases[i % BuddyKind.allCases.count], reminder: line)
+    snapshot(BuddyView(model: r), name: "7-reminder-\(i + 1)", dark: false)
+}

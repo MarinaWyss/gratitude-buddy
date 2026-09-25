@@ -50,6 +50,7 @@ struct BuddyView: View {
         case .gratitude: gratitude
         case .done: done
         case .meet: MeetView(onClose: { model.dismiss() })
+        case .reminder: reminder
         }
     }
 
@@ -135,6 +136,21 @@ struct BuddyView: View {
                 BodyText("That's okay. See you in about an hour.")
             } else {
                 BodyText("Saved to your journal. See you in about an hour.")
+            }
+        }
+    }
+
+    private var reminder: some View {
+        Group {
+            Text(model.reminder ?? "")
+                .font(.system(size: 17, design: .serif).italic())
+                .foregroundStyle(Theme.accent)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Spacer()
+                Button("Thanks") { model.dismiss() }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
             }
         }
     }

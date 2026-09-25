@@ -28,6 +28,18 @@ About one check-in in three also carries a short reflection on the feelings step
 *"Remember, it's later than you think"* or *"Today is all we ever really have."* A gentle memento mori,
 in a gratitude register rather than a grim one.
 
+## Reminders
+
+Once or twice a day, at a random moment between 10 am and 5 pm, one of the buddies also drops by with
+no questions at all, just one line:
+
+- *Remember why you're doing this.*
+- *Are you acting from a place of service?*
+- *How can you enjoy this moment just a little bit more?*
+
+It doesn't take the keyboard from whatever you're typing in. Click **Thanks** to send it off, or it slides
+away on its own after a minute. Nothing goes in the journal.
+
 ## Privacy
 
 Everything stays on your Mac. Each completed check-in is appended to a plain Markdown file at
@@ -71,6 +83,8 @@ build into Applications again, or the login item keeps launching the old one.
 - If the Mac was asleep past the scheduled time, it waits five minutes after wake.
 - If you've been away from the keyboard for more than five minutes, it waits until you're back.
 - If it sits ignored for 15 minutes it slides away on its own.
+- Reminders keep ten minutes clear of check-ins, wait until you're back at the keyboard, and stay quiet
+  while paused. A day's reminder times are picked once, so restarting the app doesn't add more.
 - Drag the card anywhere by its background.
 - The card is always light, whatever your system appearance, because the illustrations are drawn for white.
 
@@ -93,10 +107,10 @@ rendered from Toki's neutral image at build time.
 
 ## Tweaking the words and timing
 
-- Feeling words, greetings, and the reflection lines are in `Sources/CheckInModel.swift`. The chance of a
-  reflection appearing is next to the list.
+- Feeling words, greetings, the reflection lines and the reminder lines are in `Sources/CheckInModel.swift`.
+  The chance of a reflection appearing is next to its list.
 - Card copy is in `Sources/BuddyView.swift`.
-- Timing is in `Sources/Scheduler.swift`.
+- Timing is in `Sources/Scheduler.swift`, including the hours reminders keep to.
 - `./preview.sh` renders every buddy in every mood, plus each step of the card, into `build/preview/`,
   so you can check a change without waiting for a pop-up.
 - To test the real thing quickly:
@@ -109,4 +123,10 @@ BUDDY_INTERVAL_SECONDS=15 "/Applications/Gratitude Buddy.app/Contents/MacOS/Grat
 
 ```bash
 "/Applications/Gratitude Buddy.app/Contents/MacOS/Gratitude Buddy" --meet
+```
+
+- To see a reminder straight away:
+
+```bash
+"/Applications/Gratitude Buddy.app/Contents/MacOS/Gratitude Buddy" --reminder
 ```

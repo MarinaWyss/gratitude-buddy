@@ -5,7 +5,7 @@ enum Mood { case neutral, attentive, happy }
 
 /// State for one check-in conversation.
 final class CheckInModel: ObservableObject {
-    enum Step { case greeting, feelings, gratitude, done, meet }
+    enum Step { case greeting, feelings, gratitude, done, meet, reminder }
 
     @Published var step: Step = .greeting
     @Published var selected: Set<String> = []
@@ -18,6 +18,8 @@ final class CheckInModel: ObservableObject {
     let doneTitle: String
     /// Occasionally, a small reminder that time is finite. Gratitude-flavoured, not grim.
     let reflection: String?
+    /// Set when a buddy has only dropped by to say this one line.
+    let reminder: String?
 
     var onDismiss: (() -> Void)?
     var onComplete: ((JournalEntry) -> Void)?
@@ -56,10 +58,20 @@ final class CheckInModel: ObservableObject {
     /// Roughly one check-in in three carries a reflection.
     static let reflectionChance = 0.35
 
-    init(isIntro: Bool, kind: BuddyKind = .next(), meet: Bool = false, reflection: String?? = nil) {
+    /// Once or twice a day, a buddy drops by with just one of these. No questions, nothing saved.
+    static let reminders = [
+        "Remember why you're doing this.",
+        "Are you acting from a place of service?",
+        "How can you enjoy this moment just a little bit more?",
+    ]
+
+    init(isIntro: Bool, kind: BuddyKind = .next(), meet: Bool = false, reminder: String? = nil,
+         reflection: String?? = nil) {
         self.isIntro = isIntro
         self.kind = kind
         if meet { self.step = .meet }
+        if reminder != nil { self.step = .reminder }
+        self.reminder = reminder
         self.greeting = Self.greetings.randomElement()!
         self.doneTitle = Self.doneTitles.randomElement()!
         if let forced = reflection {
@@ -76,6 +88,7 @@ final class CheckInModel: ObservableObject {
         case .feelings, .gratitude: return .attentive
         case .done: return .happy
         case .meet: return .neutral
+        case .reminder: return .neutral
         }
     }
 

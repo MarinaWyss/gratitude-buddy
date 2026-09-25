@@ -23,4 +23,9 @@ enum Settings {
         get { d.object(forKey: "pausedUntil") as? Date }
         set { d.set(newValue, forKey: "pausedUntil") }
     }
+
+    static var reminderTimes: [Date] {
+        get { d.array(forKey: "reminderTimes") as? [Date] ?? [] }
+        set { d.set(newValue, forKey: "reminderTimes") }
+    }
 }

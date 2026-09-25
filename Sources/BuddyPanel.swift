@@ -36,6 +36,9 @@ final class BuddyPanelController {
 
     var isShowing: Bool { panel.isVisible }
 
+    /// When the card last slid away, so a reminder can leave some room after a check-in.
+    private(set) var lastHidden: Date?
+
     init() {
         panel = BuddyPanel(contentRect: NSRect(x: 0, y: 0, width: 380, height: 300),
                            styleMask: [.borderless, .nonactivatingPanel],
@@ -54,13 +57,14 @@ final class BuddyPanelController {
         panel.onEscape = { [weak self] in self?.escape() }
     }
 
-    func show(intro: Bool, kind: BuddyKind? = nil, meet: Bool = false) {
-        if isShowing { hide { [weak self] in self?.show(intro: intro, kind: kind, meet: meet) }; return }
+    func show(intro: Bool, kind: BuddyKind? = nil, meet: Bool = false, reminder: String? = nil) {
+        if isShowing { hide { [weak self] in self?.show(intro: intro, kind: kind, meet: meet, reminder: reminder) }; return }
 
-        let model = kind.map { CheckInModel(isIntro: intro, kind: $0, meet: meet) }
-            ?? (meet ? CheckInModel(isIntro: intro, kind: .fluffyCat, meet: true) : CheckInModel(isIntro: intro))
+        let model = CheckInModel(isIntro: intro, kind: kind ?? (meet ? .fluffyCat : .next()),
+                                 meet: meet, reminder: reminder)
+        let checkIn = !meet && reminder == nil
         model.onDismiss = { [weak self] in
-            self?.hide { self?.onOutcome?(meet ? .closed : .dismissed) }
+            self?.hide { self?.onOutcome?(checkIn ? .dismissed : .closed) }
         }
         model.onComplete = { [weak self, weak model] entry in
             self?.onOutcome?(.completed(entry))
@@ -81,7 +85,8 @@ final class BuddyPanelController {
         start.origin.y -= 22
         panel.setFrame(start, display: false)
         panel.alphaValue = 0
-        panel.makeKeyAndOrderFront(nil)
+        // A reminder has nothing to type into, so it leaves the keyboard with the app you're in.
+        if reminder == nil { panel.makeKeyAndOrderFront(nil) } else { panel.orderFrontRegardless() }
 
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.42
@@ -102,13 +107,13 @@ final class BuddyPanelController {
             s.play()
         }
 
-        // If it sits there ignored for a long while, slide away quietly.
+        // If it sits there ignored for a long while, slide away quietly. A reminder only stays a minute.
         let item = DispatchWorkItem { [weak self] in
             guard let self, self.isShowing, self.model?.step != .done else { return }
-            self.hide { self.onOutcome?(.timedOut) }
+            self.hide { self.onOutcome?(reminder == nil ? .timedOut : .closed) }
         }
         timeoutItem = item
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15 * 60, execute: item)
+        DispatchQueue.main.asyncAfter(deadline: .now() + (reminder == nil ? 15 * 60 : 60), execute: item)
     }
 
     func hide(completion: @escaping () -> Void) {
@@ -130,6 +135,7 @@ final class BuddyPanelController {
             self.panel.contentView = NSView()
             self.hosting = nil
             self.model = nil
+            self.lastHidden = Date()
             completion()
         })
     }

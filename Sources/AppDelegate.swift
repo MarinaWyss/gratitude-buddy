@@ -4,6 +4,7 @@ import ServiceManagement
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private let scheduler = Scheduler()
+    private let reminders = ReminderScheduler()
     private let buddy = BuddyPanelController()
 
     private let menu = NSMenu()
@@ -19,10 +20,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         scheduler.onFire = { [weak self] in self?.fire() }
         scheduler.onChange = { [weak self] in self?.refreshMenu() }
         scheduler.start()
+        reminders.onFire = { [weak self] in self?.remind() }
+        reminders.start()
 
         if CommandLine.arguments.contains("--meet") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
                 self?.buddy.show(intro: false, meet: true)
+            }
+        } else if CommandLine.arguments.contains("--reminder") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                self?.showReminder()
             }
         } else if !Settings.hasLaunchedBefore {
             Settings.hasLaunchedBefore = true
@@ -165,6 +172,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         buddy.show(intro: false)
+    }
+
+    private func remind() {
+        if scheduler.isPaused {
+            reminders.scheduleNext()
+            return
+        }
+        // Leave some room either side of a check-in, and wait until somebody's at the Mac.
+        let checkInSoon = scheduler.nextFire.map { $0.timeIntervalSinceNow < 10 * 60 } ?? false
+        let justHid = buddy.lastHidden.map { Date().timeIntervalSince($0) < 10 * 60 } ?? false
+        if buddy.isShowing || checkInSoon || justHid || idleSeconds() > 5 * 60 {
+            reminders.schedule(in: 10 * 60)
+            return
+        }
+        showReminder()
+        reminders.scheduleNext()
+    }
+
+    private func showReminder() {
+        guard let line = CheckInModel.reminders.randomElement() else { return }
+        buddy.show(intro: false, kind: BuddyKind.allCases.randomElement(), reminder: line)
     }
 
     private func handle(_ outcome: BuddyPanelController.Outcome) {
